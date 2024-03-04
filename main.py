@@ -144,24 +144,24 @@ def create_csv(scrap_images, book_datas):
         print(f"Scraping the {book_datas[7]} category...")
         os.makedirs(category_path)
 
-        with open(os.path.join(category_path, "Output.csv"), "w", newline="") as output:
+        with open(os.path.join(category_path, f"Output {book_datas[7]}.csv"), "w", newline="") as output:
             write = csv.writer(output)
             write.writerow(CSV_HEADER)
 
-    with open(os.path.join(category_path, "Output.csv"), "a", newline="", encoding="utf-8") as output:
+    with open(os.path.join(category_path, f"Output {book_datas[7]}.csv"), "a", newline="", encoding="utf-8") as output:
         write = csv.writer(output)
         write.writerow(book_datas)
 
     # SAVE BOOK IMAGE
     if scrap_images:
         response = requests.get(book_datas[-1])
-        if not os.path.exists(os.path.join(SAVE_PATH, "images", f"{book_datas[7]}")):
-            os.makedirs(os.path.join(SAVE_PATH, "images", f"{book_datas[7]}"))
+        if not os.path.exists(os.path.join(SAVE_PATH, "Images", f"{book_datas[7]}")):
+            os.makedirs(os.path.join(SAVE_PATH, "Images", f"{book_datas[7]}"))
 
         if len(book_datas[2]) > 35:
             book_datas[2] = book_datas[2][:35]
 
-        with open(os.path.join(SAVE_PATH, "images", f"{book_datas[7]}", f"{book_datas[2]}.jpg"), "wb") as image:
+        with open(os.path.join(SAVE_PATH, "Images", f"{book_datas[7]}", f"{book_datas[2]}.jpg"), "wb") as image:
             image.write(response.content)
 
 
