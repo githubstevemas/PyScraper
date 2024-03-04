@@ -103,9 +103,25 @@ def get_infos(scrap_images, URL_DOMAIN, book_url, soup_book):
         english_price = data_book_dictionary["Price (excl. tax)"]
         price = "".join(english_price).replace("Â£", "")
         # COUNT
-        count = data_book_dictionary["Availability"]
+        count_text = data_book_dictionary["Availability"]
+        count = ""
+        for k in count_text:
+            if k.isdigit():
+                count = f"{count}{k}"
         # RATING
-        reviews = data_book_dictionary["Number of reviews"]
+        p_soup = soup_book.find_all("p")
+        p_rating = p_soup[2]
+        reviews_letters = p_rating["class"][1]
+        if reviews_letters == "One":
+            reviews = 1
+        elif reviews_letters == "Two":
+            reviews = 2
+        elif reviews_letters == "Three":
+            reviews = 3
+        elif reviews_letters == "Four":
+            reviews = 4
+        else:
+            reviews = 5
         # IMAGE URL
         image = soup_book.find("img")
         end_url_image = image["src"].replace("../..", "")
@@ -144,11 +160,11 @@ def create_csv(scrap_images, book_datas):
         print(f"Scraping the {book_datas[7]} category...")
         os.makedirs(category_path)
 
-        with open(os.path.join(category_path, f"Output {book_datas[7]}.csv"), "w", newline="") as output:
+        with open(os.path.join(category_path, f"Output - {book_datas[7]}.csv"), "w", newline="") as output:
             write = csv.writer(output)
             write.writerow(CSV_HEADER)
 
-    with open(os.path.join(category_path, f"Output {book_datas[7]}.csv"), "a", newline="", encoding="utf-8") as output:
+    with open(os.path.join(category_path, f"Output - {book_datas[7]}.csv"), "a", newline="", encoding="utf-8") as output:
         write = csv.writer(output)
         write.writerow(book_datas)
 
