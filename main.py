@@ -5,12 +5,6 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-""" Get all the infos of books (titles, prices, etc) from books.toscrape.com """
-
-""" Things to do/change :
-    [ ] global statement errors
-    [ ] shadows name from outer scope error
-"""
 
 URL_DOMAIN = "https://books.toscrape.com"
 CSV_HEADER = ["product_page_url", "universal_ product_code (upc)", "title", "price_including_tax",
