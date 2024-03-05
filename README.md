@@ -1,13 +1,10 @@
 # PyScraper :snake:
 
-Get all the datas from [books.toscrape.com](https://books.toscrape.com).
-
-The script uses the BeautifulSoup library to parse the HTML content of the website and extract information such as book titles, prices, ratings, and descriptions.
-
+With the BeautifulSoup Python library, get informations from [books.toscrape.com](https://books.toscrape.com) like book titles, prices, ratings, descriptions and many more.
 
 ## How it works
 
-When launched, you can choose if you want to download the corresponding image files of books. The informations (title, price, description, etc..) will be saved locally in an "Outputs" folder, and each category of books will be saved in separate CSV files. Finally, the date of the scraping will be included in the name of the folder for a better manage of backups.
+When launched, all the datas will be saved locally in an "Outputs" folder, and each category of books will be loaded in separate CSV files. Date of scraping is included in the folder name for a better manage of backups. Finally, you can choose if you want to download the corresponding images files of books.
 
 ## Requirements
 
@@ -23,11 +20,14 @@ Once the code has been downloaded, go to the project directory and enter the fol
     
   `pip install -r requirements.txt` *install all the depedencies*
     
-  `python main.py` *Run the code*
+  `python main.py` *run the code*
+
+  `deactivate` *when over, deactivate the environement*
+  
 
 > [!NOTE]
-> The commands above are for Windows use. Go to the official Python documentation for usage on MacOS or Linux [ici](https://docs.python.org/fr/3/tutorial/venv.html).
+> The commands above are for Windows use. Go to the official [Python documentation](https://docs.python.org/3/tutorial/venv.html) for MacOS or Unix usage.
 
 ## Contact
-Feel free to mail me [here](mailto:mas.ste@gmail.com) for any questions, comments, or suggestions.
+Feel free to [mail me](mailto:mas.ste@gmail.com) for any questions, comments, or suggestions.
 
