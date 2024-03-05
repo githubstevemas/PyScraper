@@ -23,11 +23,14 @@ Once the code has been downloaded, go to the project directory and enter the fol
     
   `pip install -r requirements.txt` *install all the depedencies*
     
-  `python main.py` *Run the code*
+  `python main.py` *run the code*
+
+  `deactivate` *when over, deactivate the environement*
+  
 
 > [!NOTE]
-> The commands above are for Windows use. Go to the official Python documentation for usage on MacOS or Linux [ici](https://docs.python.org/fr/3/tutorial/venv.html).
+> The commands above are for Windows use. Go to the official [Python documentation](https://docs.python.org/3/tutorial/venv.html) for MacOS or Unix usage.
 
 ## Contact
-Feel free to mail me [here](mailto:mas.ste@gmail.com) for any questions, comments, or suggestions.
+Feel free to [mail me](mailto:mas.ste@gmail.com) for any questions, comments, or suggestions.
 
