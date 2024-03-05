@@ -4,7 +4,7 @@ With the BeautifulSoup Python library, get informations from [books.toscrape.com
 
 ## How it works
 
-When launched, all the datas will be saved locally in an "Outputs" folder, and each category of books will be saved in separate CSV files. Date of scraping is included in the folder name for a better manage of backups. Finally, you can choose if you want to download the corresponding images files of books.
+When launched, all the datas will be saved locally in an "Outputs" folder, and each category of books will be loaded in separate CSV files. Date of scraping is included in the folder name for a better manage of backups. Finally, you can choose if you want to download the corresponding images files of books.
 
 ## Requirements
 
