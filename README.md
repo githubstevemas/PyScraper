@@ -1,13 +1,11 @@
 # PyScraper :snake:
 
-Get all the datas from [books.toscrape.com](https://books.toscrape.com).
-
-The script uses the BeautifulSoup library to parse the HTML content of the website and extract information such as book titles, prices, ratings, and descriptions.
+Get informations from [books.toscrape.com](https://books.toscrape.com) like book titles, prices, ratings, descriptions and many more.
 
 
 ## How it works
 
-When launched, you can choose if you want to download the corresponding image files of books. The informations (title, price, description, etc..) will be saved locally in an "Outputs" folder, and each category of books will be saved in separate CSV files. Finally, the date of the scraping will be included in the name of the folder for a better manage of backups.
+When launched, all the datas will be saved locally in an "Outputs" folder, and each category of books will be saved in separate CSV files. Date of scraping is included in the folder name for a better manage of backups. Finally, you can choose if you want to download the corresponding images files of books.
 
 ## Requirements
 
