@@ -1,7 +1,6 @@
 # PyScraper :snake:
 
-Get informations from [books.toscrape.com](https://books.toscrape.com) like book titles, prices, ratings, descriptions and many more.
-
+With the BeautifulSoup Python library, get informations from [books.toscrape.com](https://books.toscrape.com) like book titles, prices, ratings, descriptions and many more.
 
 ## How it works
 
