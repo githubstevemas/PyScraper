@@ -10,7 +10,13 @@ from datetime import datetime
 descriptions and many more.
 
 Autor : Steve Mas
-Date : 03/24 """
+Date : 03/24 
+
+Improvements ideas :
+    - Possibility to choose path save
+    - Check last update of website (maybe header check ??)
+    - Scrap choosen categories
+"""
 
 # Constants
 URL_DOMAIN = "https://books.toscrape.com"
@@ -24,7 +30,7 @@ def menu():
     """ ask user for images scrap of not """
 
     while True:
-        menu_choice = input("Scrap images ? y/n ")
+        menu_choice = input("Want to get images ? y/n ")
         if menu_choice == "n":
             scrap_images = False
             break
@@ -38,7 +44,7 @@ def menu():
 def get_categories(URL_DOMAIN):
     """ from domain url, get a list of categories urls """
 
-    print("Getting datas from website...")
+    print("Scraping in progress, take a coffee break...")
     categories_urls_list = []
     response = requests.get(URL_DOMAIN)
     categories_soup = BeautifulSoup(response.text, "html.parser")
@@ -72,6 +78,7 @@ def get_categories(URL_DOMAIN):
 def get_soup(scrap_images, categories_urls_list):
     """ from categories urls list get soup of all the categories pages """
 
+    book_quantity = 0
     urls_list_length = len(categories_urls_list)
     for i in range(urls_list_length):
         responses = requests.get(categories_urls_list[i])
@@ -80,6 +87,7 @@ def get_soup(scrap_images, categories_urls_list):
         # Find and get the url of the book in the "h3" tag
         liste_h3 = soup_book_in_cat.find_all("h3")
         for h3 in liste_h3:
+            book_quantity += 1
             a_h3 = h3.find("a")
             book_url = "https://books.toscrape.com/catalogue" + a_h3.get("href").replace("../../..", "")
 
@@ -88,84 +96,80 @@ def get_soup(scrap_images, categories_urls_list):
 
             get_infos(scrap_images, URL_DOMAIN, book_url, soup_book)
 
-    print("Scrap finished!")
+    print(f"Successfully scraped {book_quantity} books!")
 
 
 def get_infos(scrap_images, URL_DOMAIN, book_url, soup_book):
     """ from soup of all the categories pages get infos for one book """
 
     data_book_dictionary = {}
-    soup_book_lenght = len(soup_book)
+    trs_in_soup = soup_book.find_all("tr")
+    trs_in_soup_lenght = len(trs_in_soup)
 
-    for i in range(soup_book_lenght):
+    for j in range(trs_in_soup_lenght):
+        cell1 = trs_in_soup[j].find("th").text
+        cell2 = trs_in_soup[j].find("td").text
+        data_book_dictionary[cell1] = cell2
 
-        trs_in_soup = soup_book.find_all("tr")
-        trs_in_soup_lenght = len(trs_in_soup)
+    # UPC
+    upc = data_book_dictionary["UPC"]
 
-        for j in range(trs_in_soup_lenght):
-            cell1 = trs_in_soup[j].find("th").text
-            cell2 = trs_in_soup[j].find("td").text
-            data_book_dictionary[cell1] = cell2
+    # PRICE WT TAX
+    english_price_tax = data_book_dictionary["Price (incl. tax)"]
+    tax_price = "".join(english_price_tax).replace("Â£", "")
 
-        # UPC
-        upc = data_book_dictionary["UPC"]
+    # PRICE WITHOUT TAX
+    english_price = data_book_dictionary["Price (excl. tax)"]
+    price = "".join(english_price).replace("Â£", "")
 
-        # PRICE WT TAX
-        english_price_tax = data_book_dictionary["Price (incl. tax)"]
-        tax_price = "".join(english_price_tax).replace("Â£", "")
+    # COUNT
+    count_text = data_book_dictionary["Availability"]
+    count = ""
+    # extract int from "In stock (XX available)" text
+    for k in count_text:
+        if k.isdigit():
+            count = f"{count}{k}"
 
-        # PRICE WITHOUT TAX
-        english_price = data_book_dictionary["Price (excl. tax)"]
-        price = "".join(english_price).replace("Â£", "")
+    # REVIEWS RATING
+    p_soup = soup_book.find_all("p")
+    p_rating = p_soup[2]
+    # Find reviews in "star-rating" class and reformat str to int
+    reviews_letters = p_rating["class"][1]
+    if reviews_letters == "One":
+        reviews = 1
+    elif reviews_letters == "Two":
+        reviews = 2
+    elif reviews_letters == "Three":
+        reviews = 3
+    elif reviews_letters == "Four":
+        reviews = 4
+    else:
+        reviews = 5
 
-        # COUNT
-        count_text = data_book_dictionary["Availability"]
-        count = ""
-        # extract int from "In stock (XX available)" text
-        for k in count_text:
-            if k.isdigit():
-                count = f"{count}{k}"
+    # IMAGE URL
+    image = soup_book.find("img")
+    end_url_image = image["src"].replace("../..", "")
+    url_image = URL_DOMAIN + end_url_image
 
-        # REVIEWS RATING
-        p_soup = soup_book.find_all("p")
-        p_rating = p_soup[2]
-        # Find reviews in "star-rating" class and reformat str to int
-        reviews_letters = p_rating["class"][1]
-        if reviews_letters == "One":
-            reviews = 1
-        elif reviews_letters == "Two":
-            reviews = 2
-        elif reviews_letters == "Three":
-            reviews = 3
-        elif reviews_letters == "Four":
-            reviews = 4
-        else:
-            reviews = 5
+    # DESCRIPTION
+    # Exeption if None
+    if soup_book.find("p", class_=""):
+        description = soup_book.find("p", class_="").text
+    else:
+        description = "No description."
 
-        # IMAGE URL
-        image = soup_book.find("img")
-        end_url_image = image["src"].replace("../..", "")
-        url_image = URL_DOMAIN + end_url_image
+    # CATEGORY
+    category_ul = soup_book.find("ul", class_="breadcrumb")
+    a_category = category_ul.find_all("a")
+    category_name = a_category[2].text
 
-        # DESCRIPTION
-        # Exeption if None
-        if soup_book.find("p", class_=""):
-            description = soup_book.find("p", class_="").text
-        else:
-            description = "No description."
+    # TITRE
+    li_title = category_ul.find_all("li")
+    # Reformat title name to prevent forbidden characters while file writing
+    title = re.sub(r'[\\/*?:"<>|]', "", li_title[3].text)
 
-        # CATEGORY
-        category_ul = soup_book.find("ul", class_="breadcrumb")
-        a_category = category_ul.find_all("a")
-        category_name = a_category[2].text
-
-        # TITRE
-        li_title = category_ul.find_all("li")
-        # Reformat title name to prevent forbidden characters while file writing
-        title = re.sub(r'[\\/*?:"<>|]', "", li_title[3].text)
-
-        book_datas = [book_url, upc, title, tax_price, price, count, description, category_name, reviews,
-                      url_image]
+    book_datas = [book_url, upc, title, tax_price, price, count, description, category_name, reviews,
+                  url_image]
 
     create_csv(scrap_images, book_datas)
 
@@ -176,11 +180,9 @@ def create_csv(scrap_images, book_datas):
     """ create csv output file with date & hour """
 
     today_date = datetime.now().strftime("%d_%m_%Y")
-
     # Check if directory already exists
-    category_path = f"{SAVE_PATH}/{today_date}/{book_datas[7]}"
+    category_path = f"{SAVE_PATH}/extracted_csv_data/{today_date}"
     if not os.path.exists(category_path):
-        print(f"Scraping the {book_datas[7]} category...")
         os.makedirs(category_path)
 
         # Create csv output file with headers
@@ -196,14 +198,14 @@ def create_csv(scrap_images, book_datas):
     # If user wants to save images
     if scrap_images:
         response = requests.get(book_datas[-1])
-        if not os.path.exists(os.path.join(SAVE_PATH, "Images", f"{book_datas[7]}")):
-            os.makedirs(os.path.join(SAVE_PATH, "Images", f"{book_datas[7]}"))
+        if not os.path.exists(os.path.join(SAVE_PATH, "books_images", f"{book_datas[7]}")):
+            os.makedirs(os.path.join(SAVE_PATH, "books_images", f"{book_datas[7]}"))
 
         # Limit characters numbers for file name
         if len(book_datas[2]) > 35:
             book_datas[2] = book_datas[2][:35]
 
-        with open(os.path.join(SAVE_PATH, "Images", f"{book_datas[7]}", f"{book_datas[2]}.jpg"), "wb") as image:
+        with open(os.path.join(SAVE_PATH, "books_images", f"{book_datas[7]}", f"{book_datas[2]}.jpg"), "wb") as image:
             image.write(response.content)
 
 
