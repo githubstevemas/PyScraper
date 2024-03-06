@@ -8,7 +8,7 @@ When launched, all the datas will be saved locally in an "Outputs" folder, and e
 
 ## Requirements
 
-- Python 3.x
+- Python 3.6 or later
 
 ## How to run
 
