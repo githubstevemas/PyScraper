@@ -41,7 +41,7 @@ def menu():
     return scrap_images
 
 
-def get_categories(URL_DOMAIN):
+def get_categories():
     """ from domain url, get a list of categories urls """
 
     print("Scraping in progress, take a coffee break...")
@@ -94,12 +94,12 @@ def get_soup(scrap_images, categories_urls_list):
             response = requests.get(book_url)
             soup_book = BeautifulSoup(response.text, "html.parser")
 
-            get_infos(scrap_images, URL_DOMAIN, book_url, soup_book)
+            get_infos(scrap_images, book_url, soup_book)
 
     print(f"Successfully scraped {book_quantity} books!")
 
 
-def get_infos(scrap_images, URL_DOMAIN, book_url, soup_book):
+def get_infos(scrap_images, book_url, soup_book):
     """ from soup of all the categories pages get infos for one book """
 
     data_book_dictionary = {}
@@ -210,5 +210,5 @@ def create_csv(scrap_images, book_datas):
 
 
 scrap_images = menu()
-categories_urls_list = get_categories(URL_DOMAIN)
+categories_urls_list = get_categories()
 get_soup(scrap_images, categories_urls_list)
