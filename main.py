@@ -115,12 +115,10 @@ def get_infos(scrap_images, book_url, soup_book):
     upc = data_book_dictionary["UPC"]
 
     # PRICE WT TAX
-    english_price_tax = data_book_dictionary["Price (incl. tax)"]
-    tax_price = "".join(english_price_tax).replace("Â£", "")
+    tax_price = data_book_dictionary["Price (incl. tax)"].replace("Â£", "")
 
     # PRICE WITHOUT TAX
-    english_price = data_book_dictionary["Price (excl. tax)"]
-    price = "".join(english_price).replace("Â£", "")
+    price = data_book_dictionary["Price (excl. tax)"].replace("Â£", "")
 
     # COUNT
     count_text = data_book_dictionary["Availability"]
@@ -131,10 +129,9 @@ def get_infos(scrap_images, book_url, soup_book):
             count = f"{count}{k}"
 
     # REVIEWS RATING
-    p_soup = soup_book.find_all("p")
-    p_rating = p_soup[2]
+    p_soup = soup_book.find_all("p")[2]
     # Find reviews in "star-rating" class and reformat str to int
-    reviews_letters = p_rating["class"][1]
+    reviews_letters = p_soup["class"][1]
     if reviews_letters == "One":
         reviews = 1
     elif reviews_letters == "Two":
@@ -148,8 +145,7 @@ def get_infos(scrap_images, book_url, soup_book):
 
     # IMAGE URL
     image = soup_book.find("img")
-    end_url_image = image["src"].replace("../..", "")
-    url_image = URL_DOMAIN + end_url_image
+    url_image = URL_DOMAIN + image["src"].replace("../..", "")
 
     # DESCRIPTION
     # Exeption if None
@@ -160,8 +156,7 @@ def get_infos(scrap_images, book_url, soup_book):
 
     # CATEGORY
     category_ul = soup_book.find("ul", class_="breadcrumb")
-    a_category = category_ul.find_all("a")
-    category_name = a_category[2].text
+    category_name = category_ul.find_all("a")[2].text
 
     # TITRE
     li_title = category_ul.find_all("li")
@@ -181,17 +176,17 @@ def create_csv(scrap_images, book_datas):
 
     today_date = datetime.now().strftime("%d_%m_%Y")
     # Check if directory already exists
-    category_path = f"{SAVE_PATH}/extracted_csv_data/{today_date}"
+    category_path = f"{SAVE_PATH}/extracted_data_{today_date}/{book_datas[7]}"
     if not os.path.exists(category_path):
         os.makedirs(category_path)
 
         # Create csv output file with headers
-        with open(os.path.join(category_path, f"Output - {book_datas[7]}.csv"), "w", newline="") as output:
+        with open(os.path.join(category_path, "Output.csv"), "w", newline="") as output:
             write = csv.writer(output)
             write.writerow(CSV_HEADER)
 
     # Add book line to the csv output file
-    with open(os.path.join(category_path, f"Output - {book_datas[7]}.csv"), "a", newline="", encoding="utf-8") as output:
+    with open(os.path.join(category_path, "Output.csv"), "a", newline="", encoding="utf-8") as output:
         write = csv.writer(output)
         write.writerow(book_datas)
 
