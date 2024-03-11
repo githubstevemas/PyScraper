@@ -2,21 +2,8 @@ import requests
 import csv
 import os
 import re
-import time
 from bs4 import BeautifulSoup
 from datetime import datetime
-
-""" With BeautifulSoup library, get informations from books.toscrape.com like book titles, prices, ratings, 
-descriptions and many more.
-
-Autor : Steve Mas
-Date : 03/24 
-
-Improvements ideas :
-    - Possibility to choose path save
-    - Check last update of website (maybe header check ??)
-    - Scrap choosen categories
-"""
 
 # Constants
 URL_DOMAIN = "https://books.toscrape.com"
@@ -30,7 +17,7 @@ TODAY_DATE = datetime.now().strftime("%d_%m_%Y")
 def get_categories():
     """ from domain url, get a list of categories urls """
 
-    print("Scraping in progress, take a coffee break...")
+    print("Scraping in progress...")
     books_count = 0
     response = requests.get(URL_DOMAIN)
     categories_soup = BeautifulSoup(response.text, "html.parser")
@@ -63,7 +50,7 @@ def get_categories():
 
             get_soup(books_count, category_books_datas, categories_urls_list)
             create_csv(category_books_datas)
-    print(f"Succefully scraped ")
+    print(f"{URL_DOMAIN} succefully scraped.")
 
 
 def get_soup(books_count, category_books_datas, categories_urls_list):
@@ -85,10 +72,6 @@ def get_soup(books_count, category_books_datas, categories_urls_list):
             soup_book = BeautifulSoup(response.text, "html.parser")
 
             get_infos(category_books_datas, book_url, soup_book)
-
-    end_time = time.time()
-
-    print(f"Successfully scraped {books_count} books in {round((end_time - start_time) / 60, 2)} minutes!")
 
 
 def get_infos(category_books_datas, book_url, soup_book):
@@ -189,7 +172,5 @@ while True:
     elif menu_choice == "y":
         scrap_images = True
         break
-
-start_time = time.time()
 
 get_categories()
