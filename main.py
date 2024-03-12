@@ -30,39 +30,37 @@ def get_categories():
     for category in categories_list:
 
         if "category/books/" in category:
-            categories_urls_list = []
+            urls_category_list = []
+            category_books_datas = []
+            next_page_number = 2
             url_category = "https://books.toscrape.com/" + category
+            urls_category_list.append(url_category)
 
-            # Check if there is a page2 on category
-            n = 2
-            while category:
-                next_page_category = url_category.replace("index.html", f"page-{n}.html")
-                try:
-                    response_next_page = requests.get(next_page_category)
-                    response_next_page.raise_for_status()
-                    categories_urls_list.append(next_page_category)
-                    n += 1
-                except:
-                    category_books_datas = []
-                    break
-
-            categories_urls_list.append(url_category)
-
-            get_soup(books_count, category_books_datas, categories_urls_list)
+            get_soup_for_category(books_count, url_category, next_page_number, urls_category_list, category_books_datas)
             create_csv(category_books_datas)
-    print(f"{URL_DOMAIN} succefully scraped.")
+
+    print(f"Succefully scraped {books_count} books from {URL_DOMAIN}.")
 
 
-def get_soup(books_count, category_books_datas, categories_urls_list):
+def get_soup_for_category(books_count, url_to_scrap, next_page_number, urls_category_list, category_books_datas):
     """ from categories urls list get soup of all the categories pages """
 
-    urls_list_length = len(categories_urls_list)
-    for i in range(urls_list_length):
-        responses = requests.get(categories_urls_list[i])
-        soup_book_in_cat = BeautifulSoup(responses.text, "html.parser")
+    responses = requests.get(url_to_scrap)
+    cat_soup = BeautifulSoup(responses.text, "html.parser")
 
-        # Find and get the url of the book in the "h3" tag
-        liste_h3 = soup_book_in_cat.find_all("h3")
+    # Check if there is a next page in the curent page
+    next_link = cat_soup.find("li", class_="next")
+
+    if next_link:
+        next_url = url_to_scrap.rsplit("/", 1)[0] + f"page-{next_page_number}.html"
+        next_page_number += 1
+        urls_category_list.append(next_url)
+        get_soup_for_category(books_count, next_url, next_page_number, urls_category_list, category_books_datas)
+
+    # Get all the books urls from the categories pages
+    for i in range(len(urls_category_list)):
+        liste_h3 = cat_soup.find_all("h3")
+
         for h3 in liste_h3:
             books_count += 1
             a_h3 = h3.find("a")
@@ -71,10 +69,12 @@ def get_soup(books_count, category_books_datas, categories_urls_list):
             response = requests.get(book_url)
             soup_book = BeautifulSoup(response.text, "html.parser")
 
-            get_infos(category_books_datas, book_url, soup_book)
+            get_infos(book_url, soup_book, category_books_datas)
+
+    return books_count, category_books_datas
 
 
-def get_infos(category_books_datas, book_url, soup_book):
+def get_infos(book_url, soup_book, category_books_datas):
     """ from soup of all the categories pages get infos for one book """
 
     # UPC
@@ -121,12 +121,13 @@ def get_infos(category_books_datas, book_url, soup_book):
 
     # TITRE
     li_title = category_ul.find_all("li")[3].text
-    # Reformat title name to prevent forbidden characters while file writing
+    # Use regex to prevent forbidden characters while file writing
     title = re.sub(r'[\\/*?:"<>|]', "", li_title)
 
     book_datas = [book_url, upc, title, tax_price, price, count, description, category_name, reviews,
                   url_image]
 
+    # Scrap images if needed
     if scrap_images:
 
         if not os.path.exists(os.path.join(SAVE_PATH, "books_images", f"{book_datas[7]}")):
@@ -148,19 +149,19 @@ def get_infos(category_books_datas, book_url, soup_book):
 def create_csv(category_books_datas):
     """ create csv output file with date & hour """
 
-    category_path = f"{SAVE_PATH}/extracted_data_{TODAY_DATE}/{category_books_datas[0][7]}"
+    category_path = f"{SAVE_PATH}/extracted_data_{TODAY_DATE}"
 
     # Check if directory already exists before writing
     if not os.path.exists(category_path):
         os.makedirs(category_path)
 
-    lenght_category_books = len(category_books_datas)
-
-    with open(os.path.join(category_path, "Output.csv"), "w", newline="", encoding="utf-8") as output:
+    # Write the category file with headers, then write all infos rows by rows
+    with open(os.path.join(category_path, f"Output - {category_books_datas[0][7]}.csv"),
+              "w", newline="", encoding="utf-8") as output:
         write = csv.writer(output)
         write.writerow(CSV_HEADER)
 
-        for i in range(lenght_category_books):
+        for i in range(len(category_books_datas)):
             write.writerow(category_books_datas[i])
 
 
