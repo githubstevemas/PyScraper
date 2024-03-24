@@ -9,11 +9,10 @@ URL_DOMAIN = "https://books.toscrape.com"
 CSV_HEADER = ["product_page_url", "universal_ product_code (upc)", "title", "price_including_tax",
               "price_excluding_tax", "number_available", "product_description", "category", "review_rating",
               "image_url"]
-TODAY_DATE = datetime.now().strftime("%d_%m_%Y")
-SAVE_PATH = f"Outputs/extracted_data_{TODAY_DATE}"
+SAVE_PATH = f"Outputs/extracted_data_{datetime.now().strftime("%d_%m_%Y")}"
 
 
-def get_categories():
+def get_main_categories():
     """ from domain url get a list of categories urls """
 
     print("Scraping in progress...")
@@ -22,34 +21,33 @@ def get_categories():
 
     create_directories(main_soup)
 
-    categories_list = []
-    for a in main_soup.find_all("a"):
-        categories_list.append(a["href"])
+    categories_list = main_soup.find('div', class_='side_categories').find('ul').find_all('a')
 
     for category in categories_list:
-        if "category/books/" in category:
-            url_category = "https://books.toscrape.com/" + category
+        if "category/books/" in category["href"]:
+            url_category = "https://books.toscrape.com/" + category["href"]
 
-            category_books_datas = get_categories_soups(url_category)
+            category_books_datas = get_soup_category(url_category)
             create_csv(category_books_datas)
 
     print(f"{URL_DOMAIN} succefully scraped.")
 
 
-def get_categories_soups(url_category):
+def get_soup_category(url_category):
     """ from category url get his soup and check if next page is present """
 
     next_page_number = 1
     category_page_datas = []
 
     while url_category:
-        response = requests.get(url_category)
-        cat_soup = BeautifulSoup(response.text, "html.parser")
 
-        category_books_datas = get_books_category(cat_soup, category_page_datas)
+        response = requests.get(url_category)
+        category_soup = BeautifulSoup(response.text, "html.parser")
+
+        category_books_datas = get_books(category_soup, category_page_datas)
 
         next_page_number += 1
-        if cat_soup.find("li", class_="next"):
+        if category_soup.find("li", class_="next"):
             url_category = url_category.rsplit("/", 1)[0] + f"/page-{next_page_number}.html"
         else:
             break
@@ -57,24 +55,25 @@ def get_categories_soups(url_category):
     return category_books_datas
 
 
-def get_books_category(cat_soup, category_page_datas):
-    """ from category url get books of all the category pages """
+def get_books(category_soup, category_page_datas):
+    """ from category url get all books of the page """
 
-    h3_list = cat_soup.find_all("h3")
+    h3_list = category_soup.find_all("h3")
 
     for h3 in h3_list:
+
         book_url = "https://books.toscrape.com/catalogue" + h3.find("a")["href"].replace("../../..", "")
 
         response = requests.get(book_url)
         soup_book = BeautifulSoup(response.text, "html.parser")
 
-        book_datas = get_infos(book_url, soup_book)
+        book_datas = get_book_infos(book_url, soup_book)
         category_page_datas.append(book_datas)
 
     return category_page_datas
 
 
-def get_infos(book_url, soup_book):
+def get_book_infos(book_url, soup_book):
     """ from soup of all the categories pages get infos for one book """
 
     upc = soup_book.find_all("td")[0].text
@@ -86,18 +85,16 @@ def get_infos(book_url, soup_book):
     count = re.search(r'\d+', soup_book.find_all("td")[5].text).group()
 
     p_soup = soup_book.find_all("p")[2]
-
-    reviews_letters = p_soup["class"][1]
-    if reviews_letters == "One":
-        reviews = 1
-    elif reviews_letters == "Two":
-        reviews = 2
-    elif reviews_letters == "Three":
-        reviews = 3
-    elif reviews_letters == "Four":
-        reviews = 4
+    if p_soup["class"][1] == "One":
+        review_rating = 1
+    elif p_soup["class"][1] == "Two":
+        review_rating = 2
+    elif p_soup["class"][1] == "Three":
+        review_rating = 3
+    elif p_soup["class"][1] == "Four":
+        review_rating = 4
     else:
-        reviews = 5
+        review_rating = 5
 
     url_image = URL_DOMAIN + soup_book.find("img")["src"].replace("../..", "")
 
@@ -112,7 +109,7 @@ def get_infos(book_url, soup_book):
     li_title = category_ul.find_all("li")[3].text
     title = re.sub(r'[\\/*?:"<>|]', "", li_title)
 
-    book_datas = [book_url, upc, title, tax_price, price, count, description, category_name, reviews,
+    book_datas = [book_url, upc, title, tax_price, price, count, description, category_name, review_rating,
                   url_image]
 
     if scrap_images:
@@ -124,8 +121,8 @@ def get_infos(book_url, soup_book):
 def create_directories(main_soup):
     """ from main page create directories for images and csv outputs """
 
-    if not os.path.exists(f"Outputs/extracted_data_{TODAY_DATE}"):
-        os.makedirs(f"Outputs/extracted_data_{TODAY_DATE}")
+    if not os.path.exists(SAVE_PATH):
+        os.makedirs(SAVE_PATH)
 
     if scrap_images:
         categories = main_soup.find("ul", class_="nav nav-list")
@@ -136,7 +133,7 @@ def create_directories(main_soup):
 
 
 def get_images(book_datas):
-    """ from infos book write images on local path """
+    """ from url image book write image on local path """
 
     response = requests.get(book_datas[-1])
 
@@ -149,7 +146,7 @@ def get_images(book_datas):
 
 
 def create_csv(category_books_datas):
-    """ create csv output file with date & hour """
+    """ create csv output file """
 
     with open(os.path.join(SAVE_PATH, f"Output - {category_books_datas[0][7]}.csv"),
               "w", newline="", encoding="utf-8") as output:
@@ -169,4 +166,4 @@ while True:
         scrap_images = True
         break
 
-get_categories()
+get_main_categories()
